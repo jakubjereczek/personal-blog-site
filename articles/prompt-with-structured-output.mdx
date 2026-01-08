@@ -1,0 +1,190 @@
+---
+title: 'Prompt with Structures Output'
+description: 'LLM as a service. Receiving predictable, machine-readable formats instead of simple text.'
+date: '2026-01-08T16:00:00Z'
+author: 'Jakub Jereczek'
+tags:
+  - AI
+  - LLM
+  - Structured Output
+  - Prompt Engineering
+---
+
+# Receiving predictable, machine-readable output
+
+## A way to shorten the AI response
+
+LLMs are designed to function as conversational assistants, which often leads to 'verbosity' - a tendency to produce walls of text filled with conversational filler and peripheral information. While this is helpful for chatbots, it is problematic for system integrations. By enforcing Structured Output, we can constrain the model to return data in a predictable format, such as a JSON response. This approach does more than just ensure data integrity, It significantly reduces token consumption by eliminating unnecessary 'pre- and post-meditations' (conversational intros and outros). Consequently, the model’s attention is focused solely on the required fields, resulting in higher precision and lower latency.
+
+## When is it useful?
+
+The primary use case for Structured Output is the transformation of unstructured, "noisy" text into precise, actionable data records. To move beyond theory, let’s examine a real-world scenario: a real-time monitoring system designed to analyze fan commentary during a high-stakes football match.
+
+In this example, the goal is not to have a conversation with the AI, but to treat the model as a high-speed data processor. By defining a strict contract, we can turn an emotional outburst into a telemetry stream ready for a live broadcast dashboard or a sports analytics database.
+To achieve this, provide the model with a clear System Role, a Schema, and Operational Constraints:
+```json
+
+System Prompt
+Role: Sports Data Extractor (JSON specialist). 
+Task: Parse fan commentary into structured telemetry. Constraint: Return ONLY valid JSON. No prose. No markdown tags.
+
+Output Schema:
+{
+  "timestamp": "ISO8601 string",
+  "entities": {
+    "teams": ["string"],
+    "players": ["string"],
+    "officials": ["string"]
+  },
+  "sentiment": {
+    "target": "string",
+    "label": "positive | neutral | negative",
+    "score": "float (-1 to 1)",
+    "emotion": "anger | joy | disappointment | neutral"
+  },
+  "game_events": {
+    "event_type": "goal | penalty | foul | card | none",
+    "controversial": "boolean"
+  },
+  "fan_alignment": "string",
+  "predicted_action": "string"
+}
+
+Rules:
+Strict Rules:
+- Use null for missing values.
+- Strictly adhere to the pipe-separated enums.
+
+Input Text: ""
+```
+
+## The results:
+### Comment 1
+Input Text: "GOOOAAL! Vini is absolutely world-class! But of course, the ref is looking for any excuse to disallowed it with that VAR check... There was no foul in the buildup, just pure strength! #HalaMadrid"
+Response: 
+```json
+{
+  "timestamp": "2026-01-08T09:46:38Z",
+  "entities": {
+    "teams": [
+      "Real Madrid"
+    ],
+    "players": [
+      "Vini"
+    ],
+    "officials": [
+      "ref"
+    ]
+  },
+  "sentiment": {
+    "target": "Vini",
+    "label": "positive",
+    "score": 0.85,
+    "emotion": "joy"
+  },
+  "game_events": {
+    "event_type": "goal",
+    "controversial": true
+  },
+  "fan_alignment": "Real Madrid",
+  "predicted_action": "VAR review"
+}
+```
+
+### Comment 2
+Input Text: "I can't believe my eyes. The defense is ball-watching while Girona counters like it's a training session. Ancelotti needs to make subs now or we’re throwing the title away. Disgraceful performance so far."
+Response: 
+```json
+{
+  "timestamp": "2026-01-08T10:47:35Z",
+  "entities": {
+    "teams": [
+      "Girona",
+      "Real Madrid"
+    ],
+    "players": null,
+    "officials": null
+  },
+  "sentiment": {
+    "target": "defense",
+    "label": "negative",
+    "score": -0.9,
+    "emotion": "disappointment"
+  },
+  "game_events": {
+    "event_type": "none",
+    "controversial": false
+  },
+  "fan_alignment": "Real Madrid",
+  "predicted_action": "substitutions"
+}
+```
+
+### Comment 3
+Input Text: "Unbelievable! Stuani comes on and immediately scores a header! Girona is actually silencing the Bernabeu. This is our season, we fear nobody! ⚪🔴 #GironaFC"
+Response: 
+```json
+{
+  "timestamp": "2026-01-08T10:48:14Z",
+  "entities": {
+    "teams": [
+      "Girona",
+      "Real Madrid"
+    ],
+    "players": [
+      "Stuani"
+    ],
+    "officials": null
+  },
+  "sentiment": {
+    "target": "Girona",
+    "label": "positive",
+    "score": 0.95,
+    "emotion": "joy"
+  },
+  "game_events": {
+    "event_type": "goal",
+    "controversial": false
+  },
+  "fan_alignment": "Girona",
+  "predicted_action": "celebration"
+}
+```
+
+### Comment 4
+Input Text: "Absolute robbery! That red card for Garcia is a joke. The referee crumbled under the pressure of the home crowd. VAR in La Liga is a complete shambles. Unreal."
+Response: 
+```json
+{
+  "timestamp": "2026-01-08T10:48:58Z",
+  "entities": {
+    "teams": [
+      "Girona"
+    ],
+    "players": [
+      "Garcia"
+    ],
+    "officials": [
+      "referee"
+    ]
+  },
+  "sentiment": {
+    "target": "referee",
+    "label": "negative",
+    "score": -0.95,
+    "emotion": "anger"
+  },
+  "game_events": {
+    "event_type": "card",
+    "controversial": true
+  },
+  "fan_alignment": "Girona",
+  "predicted_action": "protest"
+}
+```
+
+Structured Output turns chaotic social sentiment into a standardized data stream, enabling automated real-time analytics and instant integration with database-driven dashboards.
+
+## Type safety and contract-based development
+
+Structured Output enables contract-based development by enforcing a strict interface through predefined schemas. This transforms the LLM from a "black box" into a predictable, strongly-typed API, ensuring that integrations are reliable and consistent. Now it is possible to build complex AI features with the same level of confidence as traditional, hand-coded systems.
