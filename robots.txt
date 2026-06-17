@@ -1,0 +1,23 @@
+# robotics.txt for jakubjereczek.com
+# Allows crawlers to index content
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /_next/
+
+# Specific rules for important bots
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Sitemap location
+Sitemap: https://jakubjereczek.com/sitemap/main.xml
+Sitemap: https://jakubjereczek.com/sitemap/tags.xml
+Sitemap: https://jakubjereczek.com/sitemap/articles.xml
+
+# Crawl delay to prevent server overload (in seconds)
+Crawl-delay: 1
+Request-rate: 30/60
