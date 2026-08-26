@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 <url>
+<loc>https://jakubjereczek.com/article/content-security-policy</loc>
+<image:image>
+<image:loc>https://jakubjereczek.com/articles/images/content-security-policy-dark.png</image:loc>
+</image:image>
+<lastmod>2026-08-26T00:00:00.000Z</lastmod>
+<changefreq>monthly</changefreq>
+</url>
+<url>
 <loc>https://jakubjereczek.com/article/prompt-with-structured-output</loc>
 <image:image>
 <image:loc>https://jakubjereczek.com/articles/images/prompt-with-structured-output-dark.png</image:loc>
